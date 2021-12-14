@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "WikiSpiv",
+    "slug": "wikispiv",
+    "version": "2.0.3",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "wikispiv",
+    "userInterfaceStyle": "automatic",
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.wikispiv.wikispiv",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.wikispiv.wikispiv",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/android_adaptive_icon.png"
+      },
+      "icon": "./assets/images/android_legacy_icon.png",
+      "versionCode": 14
+    }
+  }
+}
