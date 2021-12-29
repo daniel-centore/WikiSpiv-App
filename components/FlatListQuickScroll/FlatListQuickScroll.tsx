@@ -62,23 +62,6 @@ export default class FlatListQuickScroll<ItemT>
     listRef: React.RefObject<RecyclerListView<any, any>>;
     latestParsedData: React.MutableRefObject<FLQSListItemProcessed<ItemT>[] | null>;
 
-    componentDidUpdate(prevProps: FlatListQuickScrollProps<any>) {
-        const nextProps = this.props;
-        if (prevProps.scrollHandleColor !== nextProps.scrollHandleColor
-            || prevProps.scrollLineColor !== nextProps.scrollLineColor
-            || prevProps.scrollHeaderBackgroundColor !== nextProps.scrollHeaderBackgroundColor
-            || prevProps.scrollHeaderTextColor !== nextProps.scrollHeaderTextColor
-        ) {
-            return false;
-        }
-        // Only update if any of the keys have changed
-        if (prevProps.data.length !== nextProps.data.length) {
-            return false;
-        }
-        const prevKeys = new Set<string>(prevProps.data.map(d => d.modification_key));
-        return !nextProps.data.find(s => !prevKeys.has(s.modification_key));
-    }
-
     static getParsedData<ItemT>(data: ReadonlyArray<FLQSListItem<ItemT>>) {
         return data.map((item, index) => {
             const offset = data.reduce((prev, cur, idx) => {
