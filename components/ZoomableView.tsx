@@ -1,5 +1,4 @@
 import React, { Component, ReactNode } from 'react';
-import PropTypes from 'prop-types';
 import {
     View,
     PanResponder,
@@ -11,9 +10,8 @@ import {
     OpaqueColorValue
 } from 'react-native';
 import { store, updateZoom } from "../store/store";
-// @ts-ignore
-import MatrixMath from 'react-native/Libraries/Utilities/MatrixMath';
 import { Unsubscribe } from 'redux';
+import MatrixMath from '../utils/MatrixMath';
 
 
 interface IProps extends ViewProps {

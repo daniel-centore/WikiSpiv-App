@@ -3,7 +3,6 @@ import {
     Dimensions,
     LayoutChangeEvent,
     LayoutRectangle,
-    ListRenderItemInfo,
     NativeScrollEvent,
     NativeSyntheticEvent,
     ScrollViewProps,

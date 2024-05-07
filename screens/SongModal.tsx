@@ -1,6 +1,7 @@
 import React from "react";
 import {
     Appearance,
+    NativeEventSubscription,
     ScrollView,
     View
 } from "react-native";
@@ -39,6 +40,7 @@ interface IState {
 class SongModalImpl extends React.Component<IPropsWithDark, IState> {
 
     unsubscribe = null as Unsubscribe | null;
+    appearanceRemove = null as NativeEventSubscription | null;
 
     constructor(props: IPropsWithDark) {
         super(props);
@@ -107,11 +109,14 @@ class SongModalImpl extends React.Component<IPropsWithDark, IState> {
     }
 
     componentDidMount() {
-        Appearance.addChangeListener(this._onThemeChange);
+        this.appearanceRemove = Appearance.addChangeListener(this._onThemeChange);
     }
 
     componentWillUnmount() {
-        Appearance.removeChangeListener(this._onThemeChange);
+        if (this.appearanceRemove) {
+            this.appearanceRemove.remove();
+            this.appearanceRemove = null;
+        }
         if (this.unsubscribe) {
             this.unsubscribe();
             this.unsubscribe = null;

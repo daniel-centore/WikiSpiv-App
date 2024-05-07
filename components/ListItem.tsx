@@ -23,7 +23,8 @@ const ListItem = React.memo<ListItemData>((props) => {
                     paddingLeft: 10,
                 }}
                 backgroundColor={backgroundColorListHeaders(dark)}>
-                <Text fontSize={22} fontWeight={'bold'} color={textColorListHeaders(dark)}>{item.data}</Text>
+                {/* TODO: Improve type of item.data */}
+                <Text fontSize={22} fontWeight={'bold'} color={textColorListHeaders(dark)}>{item.data as string}</Text>
             </View>
         );
     } else {
