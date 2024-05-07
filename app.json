@@ -27,6 +27,9 @@
       },
       "icon": "./assets/images/android_legacy_icon.png",
       "versionCode": 14
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

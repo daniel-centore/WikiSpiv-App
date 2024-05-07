@@ -17,7 +17,7 @@ import createSagaMiddleware, { buffers, channel, Buffer, Saga } from 'redux-saga
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { REHYDRATE } from 'redux-persist/lib/constants';
 import wiki from 'wikijs';
-import { aggregatePagination, api, pagination } from 'wikijs/dist/util'
+import { aggregatePagination, api, pagination } from 'wikijs/dist/mjs/util'
 import { PriorityBuffer } from './PriorityBuffer';
 import { ChordModeSetting, DarkModeSetting, PhoneticModeSetting } from './SettingEnums';
 import { chunks } from '../utils/simpleUtils';
@@ -54,15 +54,21 @@ const initialState = {
     },
 }
 
-export const resetApp = createAction<null>('app/reset');
+const RESET_APP = 'app/reset'
+export const resetApp = createAction<null>(RESET_APP);
 
-export const clearSongList = createAction<null>('song/clearSongList');
+const CLEAR_SONG_LIST = 'song/clearSongList';
+export const clearSongList = createAction<null>(CLEAR_SONG_LIST);
 // Updates data in a multiple songs (like calling updateSong multiple times)
-const updateSongs = createAction<Song[]>('song/updateSongs');
+const UPDATE_SONGS = 'song/updateSongs';
+const updateSongs = createAction<Song[]>(UPDATE_SONGS);
 // Updates the full list of songs, adding and deleting as necessary
-const updateSongList = createAction<{ songs: Song[], categories: string[] }>('song/updateSongList');
-const updateSongListTriggered = createAction<number>('song/updateSongListTriggered');
-export const transposeSong = createAction<{ song: Song, amount: number }>('song/transpose');
+const UPDATE_SONG_LIST = 'song/updateSongList';
+const updateSongList = createAction<{ songs: Song[], categories: string[] }>(UPDATE_SONG_LIST);
+const UPDATE_SONG_LIST_TRIGGERED = 'song/updateSongListTriggered';
+const updateSongListTriggered = createAction<number>(UPDATE_SONG_LIST_TRIGGERED);
+const TRANSPOSE_SONG = 'song/transpose';
+export const transposeSong = createAction<{ song: Song, amount: number }>(TRANSPOSE_SONG);
 
 export const updateZoom = createAction<number>('ux/updateZoom');
 export const updateDarkMode = createAction<DarkModeSetting>('ux/updateDarkMode');
@@ -71,7 +77,8 @@ export const updatePhoneticMode = createAction<PhoneticModeSetting>('ux/updatePh
 export const updateShowTransposition = createAction<boolean>('ux/updateShowTransposition');
 export const updateColumns = createAction<{ song: Song, columns: number }>('ux/updateColumns');
 
-export const updateError = createAction<string>('error/updateError');
+const UPDATE_ERROR = 'error/updateError';
+export const updateError = createAction<string>(UPDATE_ERROR);
 
 export const updateSearchText = createAction<string>('search/updateSearchText');
 
@@ -371,7 +378,7 @@ function* handleLowPriRequests(channel: any, buffer: PriorityBuffer<any>) {
                 } catch (error) {
                     attempts++;
                     yield put({
-                        type: updateError, payload:
+                        type: UPDATE_ERROR, payload:
                             'Failed to fetch batch of songs'
                             + '\nPlease check your internet'
                             + '\nTrying again (Attempt ' + attempts + ')'
@@ -380,7 +387,7 @@ function* handleLowPriRequests(channel: any, buffer: PriorityBuffer<any>) {
                 }
             }
         }
-        yield put({ type: updateSongs, payload: updatedSongs })
+        yield put({ type: UPDATE_SONGS, payload: updatedSongs })
     }
 }
 
@@ -396,21 +403,21 @@ function* handleHighPriRequests(channel: any, _buffer: PriorityBuffer<any>) {
             try {
                 const fetched: Song | null = yield fetchSong(song);
                 if (fetched) {
-                    yield put({ type: updateSongs, payload: [fetched] });
+                    yield put({ type: UPDATE_SONGS, payload: [fetched] });
                 }
                 break;
             } catch (error) {
                 attempts++;
                 if (attempts > 5) {
                     yield put({
-                        type: updateError, payload:
+                        type: UPDATE_ERROR, payload:
                             'Failed to fetch song [' + song.init.name + ']'
                             + '\nPlease check your internet and restart the app'
                     });
                     break;
                 }
                 yield put({
-                    type: updateError, payload:
+                    type: UPDATE_ERROR, payload:
                         'Failed to fetch song [' + song.init.name + ']'
                         + '\nPlease check your internet'
                         + '\nTrying again (Attempt ' + attempts + ')'
@@ -441,7 +448,7 @@ function* handleReloadRequests(channel: any) {
         }
 
         // console.log('Updating trigger');
-        yield put({ type: updateSongListTriggered, payload: Date.now() });
+        yield put({ type: UPDATE_SONG_LIST_TRIGGERED, payload: Date.now() });
 
         // Update the song list every time
         let attempts = 1;
@@ -452,12 +459,12 @@ function* handleReloadRequests(channel: any) {
                     throw new Error();
                 }
                 // console.log('Updating song list');
-                yield put({ type: updateSongList, payload: songList });
+                yield put({ type: UPDATE_SONG_LIST, payload: songList });
                 break;
             } catch (error) {
                 attempts++;
                 yield put({
-                    type: updateError, payload:
+                    type: UPDATE_ERROR, payload:
                         'Failed to download song and category lists'
                         + '\nPlease check your internet'
                         + '\nTrying again (Attempt ' + attempts + ')'

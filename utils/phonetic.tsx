@@ -1,5 +1,6 @@
 import { G } from "react-native-svg";
 import { PhoneticModeSetting } from "../store/SettingEnums";
+import XRegExp from 'xregexp';
 const replaceAll = require('string.prototype.replaceall');
 
 const cache = {} as {
@@ -239,7 +240,7 @@ function replacePreserveCase(
     wordBoundaries?: boolean,
 ): string {
     // This would be much easier if \b worked with unicode...
-    const regex = new RegExp(
+    const regex = XRegExp(
         (wordBoundaries ? String.raw`(^|[^\n\p{L}])` : '')
         + needle
         + (wordBoundaries ? String.raw`(?=$|\P{L})` : ''),
