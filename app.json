@@ -2,7 +2,7 @@
   "expo": {
     "name": "WikiSpiv",
     "slug": "wikispiv",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "wikispiv",
@@ -21,15 +21,25 @@
       }
     },
     "android": {
-      "package": "com.wikispiv.wikispiv",
+      "package": "com.wikispiv.wikispiv2",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android_adaptive_icon.png"
       },
       "icon": "./assets/images/android_legacy_icon.png",
-      "versionCode": 14
+      "versionCode": 15
     },
     "plugins": [
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8271c6a8-942f-49f6-9fcd-0c5c1c668a27"
+      }
+    },
+    "splash": {
+      "image": "./assets/images/android_adaptive_icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    }
   }
 }

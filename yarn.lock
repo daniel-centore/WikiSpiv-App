@@ -7182,7 +7182,7 @@ nanoid@^3.1.23, nanoid@^3.3.7:
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.7.tgz#d0c301a691bc8d54efa0a2226ccf3fe2fd656bd8"
   integrity sha512-eSRppjcPIatRIMC1U6UngP8XFcz8MQWGQdt1MTBQ7NaAmvXDfvNxbvWV3x2y6CdEUciCSsDHDQZbhYaB8QEo2g==
 
-native-base@^3.2.1:
+native-base@^3.4.28:
   version "3.4.28"
   resolved "https://registry.yarnpkg.com/native-base/-/native-base-3.4.28.tgz#81b174c8fab1a38fc4560abc12b63dc836c6a14a"
   integrity sha512-EDg9UFDNmfYXPInpRbxce+4oWFEIGaM7aG6ey4hVllcvMC3PkgCvkiXEB+7EemgC7Qr8CuFjgMTx7P0vvnwZeQ==

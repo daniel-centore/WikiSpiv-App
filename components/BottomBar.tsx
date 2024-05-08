@@ -160,7 +160,7 @@ function BottomBarButton(props: {
                         props.isSelected ? props.selectedIcon : props.outlineIcon
                     }
                     color="white"
-                    size="sm"
+                    size="lg"
                 />
                 {/* <Text color="white" fontSize="12">
                     {props.title}

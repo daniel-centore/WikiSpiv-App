@@ -51,7 +51,7 @@
     "expo-system-ui": "~2.9.4",
     "expo-web-browser": "~12.8.2",
     "memoize-one": "^6.0.0",
-    "native-base": "^3.2.1",
+    "native-base": "^3.4.28",
     "patch-package": "^6.4.7",
     "postinstall-postinstall": "^2.1.0",
     "querystring": "^0.2.1",

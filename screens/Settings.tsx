@@ -1,6 +1,6 @@
-import { View, Text, Select, CheckIcon, Button } from "native-base";
+import { View, Text, Select, CheckIcon, ScrollView, Button } from "native-base";
 import React, { useRef } from "react";
-import { Alert, Image, ScrollView, Switch } from 'react-native';
+import { Alert, Image, Switch } from 'react-native';
 import SettingsRow from "../components/SettingsRow";
 import { RELOAD_SONG_LIST, resetApp, RootState, store, updateDarkMode, updatePhoneticMode } from "../store/store";
 import {
@@ -76,7 +76,7 @@ export default function Settings() {
                         'Спільний Співаник Української Діяспори'
                         + '\nThe Collaborative Ukrainian Diaspora Spivanyk'
                         + '\n(C) Danylo Centore 2016 - ' + new Date().getFullYear()
-                        + '\nv' + Constants.manifest?.version
+                        + '\nv' + Constants.expoConfig?.version
                     }
                 </Text>
                 <SettingsRow title="Theme / Тема">
@@ -92,14 +92,16 @@ export default function Settings() {
                         }}
                         backgroundColor={backgroundColorSecondary(dark)}
                         color={textColorPrimary(dark)}
+                        // https://github.com/GeekyAnts/NativeBase/issues/5687
+                        _actionSheetBody={{ scrollEnabled: false }}
                         _actionSheetContent={{
-                            backgroundColor: backgroundColorPrimary(dark),
-
+                            backgroundColor: backgroundColorSecondary(dark),
                         }}
                         _item={{
                             _text: {
                                 color: textColorPrimary(dark),
-                            }
+                            },
+                            backgroundColor: backgroundColorSecondary(dark),
                         }}
                         _selectedItem={{
                             backgroundColor: backgroundColorSelected(dark),
@@ -129,10 +131,6 @@ export default function Settings() {
                             store.dispatch({ type: updatePhoneticMode, payload: newValue });
                         }} />
                 </SettingsRow>
-
-
-                {/* TODO: Keep awake setting!! Right now it's just always on, no way to disable
-            https://docs.expo.dev/versions/latest/sdk/keep-awake/ */}
 
                 <SettingsRow title="Update songs / Оновлювати пісні">
                     <Button
