@@ -103,9 +103,9 @@ function SearchBar(props: { listRef: React.RefObject<FlatListQuickScroll<any>> }
             borderWidth={0}
             width="100%"
             borderRadius="4"
-            py="3"
+            py="4"
             px="1"
-            fontSize="14"
+            fontSize="15"
             InputLeftElement={
                 <Icon
                     m="2"
