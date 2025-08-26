@@ -20,7 +20,7 @@ interface IProps extends ViewProps {
     backgroundColor?: string | OpaqueColorValue | undefined,
 }
 
-interface IState extends ViewProps {
+interface IState {
     scale: number,
     childrenWidth: number,
     childrenHeight: number,
@@ -31,12 +31,12 @@ interface IState extends ViewProps {
 
 // Based on https://github.com/GuoChen-WHU/react-native-pinch-zoom-view/blob/master/index.js
 
-export default class ZoomableView extends Component<IProps, IState> {
+export default class ZoomableView extends Component<IProps> {
 
     // The default height and width of the container, which is defined to be
     // so absurdly large that the children will never be larger and the container
     // can then be immediately resized to the children
-    DEFAULT_SIZE = 1000000;
+    DEFAULT_SIZE = 10000;
 
     static defaultProps = {
         minScale: 0.5,
@@ -48,6 +48,10 @@ export default class ZoomableView extends Component<IProps, IState> {
     lastScale: React.MutableRefObject<number | null>;
     unsubscribe = null as Unsubscribe | null;
 
+    // Previously this was stored as regular react state, but there seems
+    // to be an issue with race conditions and setting state in the latest react version
+    myState: IState;
+
     // Kludge for working around rounding errors in iOS
     // This would cause a cascading effect where a slight decrease in size
     // would cause children recomputation which would cause 
@@ -55,7 +59,7 @@ export default class ZoomableView extends Component<IProps, IState> {
 
     constructor(props: IProps) {
         super(props);
-        this.state = {
+        this.myState = {
             scale: store.getState().zoomScale,
             childrenWidth: this.DEFAULT_SIZE,
             childrenHeight: this.DEFAULT_SIZE,
@@ -80,11 +84,12 @@ export default class ZoomableView extends Component<IProps, IState> {
         });
         this.unsubscribe = store.subscribe(() => {
             const scale = store.getState().zoomScale;
-            if (scale !== this.state.scale) {
-                this.setState({
-                    ...this.state,
-                    scale: scale,
-                });
+            if (scale !== this.myState.scale) {
+                this.myState = {
+                    ...this.myState,
+                    scale,
+                }
+                this.forceUpdate();
             }
         });
     }
@@ -135,8 +140,8 @@ export default class ZoomableView extends Component<IProps, IState> {
         e: GestureResponderEvent,
         gestureState: PanResponderGestureState,
     ) => {
-        this.lastScale.current = this.state.scale;
-        store.dispatch({ type: updateZoom.toString(), payload: this.state.scale })
+        this.lastScale.current = this.myState.scale;
+        store.dispatch({ type: updateZoom.toString(), payload: this.myState.scale })
     };
 
     _handlePanResponderMove = (
@@ -154,10 +159,11 @@ export default class ZoomableView extends Component<IProps, IState> {
             let distance = Math.sqrt(dx * dx + dy * dy);
             let scale = (distance / this.startDistance) * (this.lastScale.current ?? 1);
             if (scale < this.props.maxScale && scale > this.props.minScale) {
-                this.setState({
-                    ...this.state,
-                    scale: scale,
-                });
+                this.myState = {
+                    ...this.myState,
+                    scale,
+                }
+                this.forceUpdate();
             }
             e.preventDefault();
             e.stopPropagation();
@@ -182,9 +188,9 @@ export default class ZoomableView extends Component<IProps, IState> {
         const EPSILON = 1;
         let width = event.nativeEvent.layout.width;
         let height = event.nativeEvent.layout.height;
-        let forceChildrenLayout = this.state.forceChildrenLayout;
-        if (event.nativeEvent.layout.height > this.state.childrenHeight + EPSILON
-            || event.nativeEvent.layout.width > this.state.childrenWidth + EPSILON) {
+        let forceChildrenLayout = this.myState.forceChildrenLayout;
+        if (event.nativeEvent.layout.height > this.myState.childrenHeight + EPSILON
+            || event.nativeEvent.layout.width > this.myState.childrenWidth + EPSILON) {
             width = this.DEFAULT_SIZE;
             height = this.DEFAULT_SIZE;
 
@@ -194,24 +200,26 @@ export default class ZoomableView extends Component<IProps, IState> {
             forceChildrenLayout++;
         }
 
-        this.setState({
-            ...this.state,
+        this.myState = {
+            ...this.myState,
             childrenWidth: width,
             childrenHeight: height,
             forceChildrenLayout,
-        });
+        }
+        this.forceUpdate();
     }
 
     _wrapperOnLayout = (event: LayoutChangeEvent) => {
-        this.setState({
-            ...this.state,
+        this.myState = {
+            ...this.myState,
             fullWidth: event.nativeEvent.layout.width,
             fullHeight: event.nativeEvent.layout.height,
-        })
+        }
+        this.forceUpdate();
     }
 
     render() {
-        const state = this.state;
+        const state = this.myState;
         const scale = state.scale;
 
         const innerWidth = Math.max(state.childrenWidth * scale, state.fullWidth);

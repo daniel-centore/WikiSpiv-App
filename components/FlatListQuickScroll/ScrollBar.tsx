@@ -229,7 +229,7 @@ export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>, ISt
 
             // console.log('onPanResponderMove - using scrollbar!');
             this.setState(state => {
-                console.log('onPanResponderMove', { state });
+                // console.log('onPanResponderMove', { state });
                 return {
                     ...state,
                     onPanResponderMove: state.onPanResponderMove + 1,
