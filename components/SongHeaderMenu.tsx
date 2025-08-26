@@ -2,7 +2,7 @@ import React from 'react';
 import { Alert, Linking, Pressable, StyleProp, TextStyle, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import Song from '../interfaces/Song';
-import { ChordModeSetting, PhoneticModeSetting } from '../store/SettingEnums';
+import { ChordModeSetting, DarkModeSetting, PhoneticModeSetting } from '../store/SettingEnums';
 import {
     HIGH_PRI_FETCH,
     RootState,
@@ -10,6 +10,7 @@ import {
     transposeSong,
     updateChordMode,
     updateColumns,
+    updateDarkMode,
     updatePhoneticMode,
     updateShowTransposition,
 } from '../store/store';
@@ -99,6 +100,17 @@ export default function SongHeaderMenu (props: { song: Song }) {
                     if (!isChordChecked) {
                         store.dispatch({ type: updateChordMode.toString(), payload: ChordModeSetting.BASIC_CHORDS });
                     }
+                }}
+            />
+            <Menu.Item
+                title={(dark ? '✓ ' : '') + 'Dark / Темний'}
+                style={styleParams}
+                titleStyle={textParams}
+                onPress={() => {
+                    store.dispatch({
+                        type: updateDarkMode.toString(),
+                        payload: dark ? DarkModeSetting.LIGHT : DarkModeSetting.DARK,
+                    });
                 }}
             />
             <Divider bold />
