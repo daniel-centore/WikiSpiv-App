@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Linking, Pressable, StyleProp, TextStyle, ViewStyle } from 'react-native';
+import { Alert, Linking, StyleProp, TextStyle, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import Song from '../interfaces/Song';
 import { ChordModeSetting, DarkModeSetting, PhoneticModeSetting } from '../store/SettingEnums';

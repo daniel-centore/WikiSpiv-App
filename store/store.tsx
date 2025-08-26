@@ -2,28 +2,19 @@ import { Action, applyMiddleware, combineReducers, createStore } from 'redux';
 import { persistStore, persistReducer, PersistConfig } from 'redux-persist';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import Song from '../interfaces/Song';
-import { createAction, createReducer } from '@reduxjs/toolkit'
-import {
-    call,
-    put,
-    take,
-    fork,
-    actionChannel,
-    delay,
-    SimpleEffect,
-    all
-} from 'redux-saga/effects'
-import { buffers, channel, Buffer, Saga } from 'redux-saga'
+import { createAction, createReducer } from '@reduxjs/toolkit';
+import { call, put, take, fork, actionChannel, delay, SimpleEffect, all } from 'redux-saga/effects';
+import { buffers, channel, Buffer, Saga } from 'redux-saga';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { REHYDRATE } from 'redux-persist/lib/constants';
 import wiki from 'wikijs';
-import { aggregatePagination, pagination } from 'wikijs/dist/mjs/util'
+import { aggregatePagination, pagination } from 'wikijs/dist/mjs/util';
 import { PriorityBuffer } from './PriorityBuffer';
 import { ChordModeSetting, DarkModeSetting, PhoneticModeSetting } from './SettingEnums';
 import { chunks } from '../utils/simpleUtils';
 
 // Workaround from https://github.com/redux-saga/redux-saga/issues/2709#issuecomment-2847140992
-const createSagaMiddleware = require('redux-saga').default
+const createSagaMiddleware = require('redux-saga').default;
 
 const SEC_MS = 1000;
 const MIN_MS = 60 * SEC_MS;
@@ -55,9 +46,9 @@ const initialState = {
         error: null as string | null,
         errorTime: 0,
     },
-}
+};
 
-const RESET_APP = 'app/reset'
+const RESET_APP = 'app/reset';
 export const resetApp = createAction<null>(RESET_APP);
 
 const CLEAR_SONG_LIST = 'song/clearSongList';
@@ -67,18 +58,19 @@ const UPDATE_SONGS = 'song/updateSongs';
 const updateSongs = createAction<Song[]>(UPDATE_SONGS);
 // Updates the full list of songs, adding and deleting as necessary
 const UPDATE_SONG_LIST = 'song/updateSongList';
-const updateSongList = createAction<{ songs: Song[], categories: string[] }>(UPDATE_SONG_LIST);
+const updateSongList = createAction<{ songs: Song[]; categories: string[] }>(UPDATE_SONG_LIST);
 const UPDATE_SONG_LIST_TRIGGERED = 'song/updateSongListTriggered';
 const updateSongListTriggered = createAction<number>(UPDATE_SONG_LIST_TRIGGERED);
 const TRANSPOSE_SONG = 'song/transpose';
-export const transposeSong = createAction<{ song: Song, amount: number }>(TRANSPOSE_SONG);
+export const transposeSong = createAction<{ song: Song; amount: number }>(TRANSPOSE_SONG);
 
 export const updateZoom = createAction<number>('ux/updateZoom');
 export const updateDarkMode = createAction<DarkModeSetting>('ux/updateDarkMode');
 export const updateChordMode = createAction<ChordModeSetting>('ux/updateChordMode');
 export const updatePhoneticMode = createAction<PhoneticModeSetting>('ux/updatePhoneticMode');
 export const updateShowTransposition = createAction<boolean>('ux/updateShowTransposition');
-export const updateColumns = createAction<{ song: Song, columns: number }>('ux/updateColumns');
+export const updateColumns = createAction<{ song: Song; columns: number }>('ux/updateColumns');
+export const updateFavorite = createAction<{ song: Song; favorite: boolean }>('ux/updateFavorite');
 
 const UPDATE_ERROR = 'error/updateError';
 export const updateError = createAction<string>(UPDATE_ERROR);
@@ -92,82 +84,82 @@ export const RELOAD_SONG_LIST = 'RELOAD_SONG_LIST';
 
 // This is using Redux Toolkit & Immer - it is not actually mutating the state
 // See https://redux.js.org/usage/structuring-reducers/immutable-update-patterns/
-const rootReducer = createReducer(initialState, (builder) => {
+const rootReducer = createReducer(initialState, builder => {
     builder
         .addCase(updateSongs, (state, action) => {
             const updatedSongs = action.payload;
             const updatedSongMap = {} as { [id: string]: Song };
-            updatedSongs.forEach(s => updatedSongMap[s.init.name] = s);
+            updatedSongs.forEach(s => (updatedSongMap[s.init.name] = s));
 
-            state.songs = state.songs.map(
-                oldSong => {
-                    if (oldSong.init.name in updatedSongMap) {
-                        const updatedSong = updatedSongMap[oldSong.init.name];
-                        // Save these old params after updating everything else
-                        updatedSong.local = {
-                            ...oldSong.local
-                        };
-                        return updatedSong;
-                    }
-                    return oldSong;
+            state.songs = state.songs.map(oldSong => {
+                if (oldSong.init.name in updatedSongMap) {
+                    const updatedSong = updatedSongMap[oldSong.init.name];
+                    // Save these old params after updating everything else
+                    updatedSong.local = {
+                        ...oldSong.local,
+                    };
+                    return updatedSong;
                 }
-            );
+                return oldSong;
+            });
         })
         .addCase(transposeSong, (state, action) => {
             const song = action.payload.song;
-            const amount = action.payload.amount
-            state.songs = state.songs.map(
-                s => {
-                    if (s.init.name !== song.init.name) {
-                        return s;
-                    }
-                    const newSong = new Song(
-                        song.init,
-                        song.populated,
-                        {
-                            ...song.local,
-                            transposition: amount,
-                        },
-                    );
-                    return newSong;
+            const amount = action.payload.amount;
+            state.songs = state.songs.map(s => {
+                if (s.init.name !== song.init.name) {
+                    return s;
                 }
-            );
+                const newSong = new Song(song.init, song.populated, {
+                    ...song.local,
+                    transposition: amount,
+                });
+                return newSong;
+            });
         })
         .addCase(updateColumns, (state, action) => {
             const song = action.payload.song;
-            const columns = action.payload.columns
-            state.songs = state.songs.map(
-                s => {
-                    if (s.init.name !== song.init.name) {
-                        return s;
-                    }
-                    const newSong = new Song(
-                        song.init,
-                        song.populated,
-                        {
-                            ...song.local,
-                            columns,
-                        },
-                    );
-                    return newSong;
+            const columns = action.payload.columns;
+            state.songs = state.songs.map(s => {
+                if (s.init.name !== song.init.name) {
+                    return s;
                 }
-            );
+                const newSong = new Song(song.init, song.populated, {
+                    ...song.local,
+                    columns,
+                });
+                return newSong;
+            });
+        })
+        .addCase(updateFavorite, (state, action) => {
+            const song = action.payload.song;
+            const favorite = action.payload.favorite;
+            state.songs = state.songs.map(s => {
+                if (s.init.name !== song.init.name) {
+                    return s;
+                }
+                const newSong = new Song(
+                    song.init,
+                    song.populated
+                        ? { ...song.populated, forceRefresh: Date.now() }
+                        : null,
+                    {
+                        ...song.local,
+                        favorite,
+                    },
+                );
+                return newSong;
+            });
         })
         .addCase(updateSongList, (state, action) => {
             // Remove songs which are not in the source
             const latestSongs = action.payload.songs;
             const latestSongMap = {} as { [id: string]: Song };
-            latestSongs.forEach(s => latestSongMap[s.init.name] = s);
-            state.songs = state.songs.filter(
-                oldSong => oldSong.init.name in latestSongMap
-            );
+            latestSongs.forEach(s => (latestSongMap[s.init.name] = s));
+            state.songs = state.songs.filter(oldSong => oldSong.init.name in latestSongMap);
             // Add songs which are not in the existing
-            const existingSongTitles = new Set<string>(
-                state.songs.map(s => s.init.name)
-            );
-            const newSongs = latestSongs.filter(
-                ns => !existingSongTitles.has(ns.init.name)
-            );
+            const existingSongTitles = new Set<string>(state.songs.map(s => s.init.name));
+            const newSongs = latestSongs.filter(ns => !existingSongTitles.has(ns.init.name));
             state.songs.push(...newSongs);
             // Update the list of redirects and init time
             state.songs = state.songs.map(os => {
@@ -211,27 +203,28 @@ const rootReducer = createReducer(initialState, (builder) => {
             state.transposition = action.payload;
         })
         .addDefaultCase((state, action) => {
-            return state
-        })
+            return state;
+        });
 });
 
-async function fetchDisplayCategories(): Promise<string[]> {
+async function fetchDisplayCategories (): Promise<string[]> {
     const apiOptions = { apiUrl: 'https://www.wikispiv.com/api.php' };
 
     return await wiki(apiOptions)
         .page('List:App categories')
         .then(async (page: any) => {
             const raw = await page.rawContent();
-            const result = raw.split('\n')
-                .filter((result: any) => result.trim().length > 0);
+            const result = raw.split('\n').filter((result: any) => result.trim().length > 0);
             return result;
-        }).catch((error: any) => { throw error });
-
+        })
+        .catch((error: any) => {
+            throw error;
+        });
 }
 
-async function fetchSongAndCategoryLists(): Promise<{
-    songs: Song[],
-    categories: string[],
+async function fetchSongAndCategoryLists (): Promise<{
+    songs: Song[];
+    categories: string[];
 }> {
     const apiOptions = { apiUrl: 'https://www.wikispiv.com/api.php' };
 
@@ -239,8 +232,9 @@ async function fetchSongAndCategoryLists(): Promise<{
         wiki(apiOptions).pagesInCategory('Category:App_exclude'),
         wiki(apiOptions).pagesInCategory('Category:Пісні'),
         fetchDisplayCategories(),
-    ])
-        .catch((error) => { throw error });
+    ]).catch(error => {
+        throw error;
+    });
 
     const allRedirects = await aggregatePagination(
         pagination(
@@ -250,72 +244,69 @@ async function fetchSongAndCategoryLists(): Promise<{
                 redirects: 1,
             },
             (res: any) => Object.values(res.query.redirects || []) || [],
-        )
+        ),
     );
 
     const filteredSongs = allSongs.filter((song: any) => !excludeSongs.includes(song));
 
     const redirectsMap = {} as { [id: string]: Set<string> };
-    allRedirects.forEach((r: { from: string, to: string }) => {
+    allRedirects.forEach((r: { from: string; to: string }) => {
         redirectsMap[r.to] = redirectsMap[r.to] || new Set();
         redirectsMap[r.to].add(r.from);
     });
-
 
     const songs = filteredSongs.map((pagename: any) => {
         // console.log(redirectsMap[pagename]);
         return new Song(
             {
                 name: pagename,
-                alternateNames: redirectsMap[pagename]
-                    ? Array.from(redirectsMap[pagename])
-                    : []
+                alternateNames: redirectsMap[pagename] ? Array.from(redirectsMap[pagename]) : [],
             },
-            null,  // populated
-            null,  // local
+            null, // populated
+            null, // local
         );
     });
     return {
         songs: songs,
         categories: displayCategories,
-    }
+    };
 }
 
 type FetchResult = {
-    batchcomplete: string,
+    batchcomplete: string;
     continue: {
-        clcontinue: string,
-        continue: string,
-    }
+        clcontinue: string;
+        continue: string;
+    };
     query: {
         pages: {
             [id: string]: {
                 categories: {
-                    ns: number,
-                    title: string,
-                }[],
-                ns: number,
-                pageid: number,
+                    ns: number;
+                    title: string;
+                }[];
+                ns: number;
+                pageid: number;
                 revisions: {
                     slots: {
                         main: {
-                            '*': string,
-                            contentformat: string,
-                            contentmodel: string,
-                        }
-                    },
-                }[],
-                title: string,
-            }
-        }
-    }
+                            '*': string;
+                            contentformat: string;
+                            contentmodel: string;
+                        };
+                    };
+                }[];
+                title: string;
+            };
+        };
+    };
 };
 
-async function fetchSongs(songs: Song[]): Promise<Song[]> {
+async function fetchSongs (songs: Song[]): Promise<Song[]> {
     const apiOptions = { apiUrl: 'https://www.wikispiv.com/api.php' };
 
     const songMap = {} as { [id: string]: Song };
-    songs.forEach(s => songMap[s.init.name] = s);
+    songs.forEach(s => (songMap[s.init.name] = s));
 
     // console.log('Fetching '+song.name+"...");
 
@@ -328,7 +319,7 @@ async function fetchSongs(songs: Song[]): Promise<Song[]> {
                 rvslots: 'main',
                 rvsection: 0,
                 titles: songs.map(s => s.init.name).join('|'),
-                cllimit: 'max',  // max number of categories to return (500)
+                cllimit: 'max', // max number of categories to return (500)
             },
             (result: FetchResult) => {
                 return Object.values(result.query.pages).map(page => {
@@ -340,16 +331,16 @@ async function fetchSongs(songs: Song[]): Promise<Song[]> {
                             categories: page.categories.map(c => c.title),
                             wikitext: page.revisions[0].slots.main['*'],
                         },
-                        null,  // local
+                        null, // local
                     );
                 });
             },
-        )
+        ),
     );
 }
 
-async function fetchSong(song: Song): Promise<Song | null> {
-    return fetchSongs([song]).then(s => s ? s[0] : null);
+async function fetchSong (song: Song): Promise<Song | null> {
+    return fetchSongs([song]).then(s => (s ? s[0] : null));
 }
 
 // Number of songs to request at a time
@@ -361,41 +352,38 @@ const FETCH_BATCH_SIZE = 50;
 //   - Too smol  = Slower app + clicks unresponsive
 const RENDER_BATCH_SIZE = 200;
 
-function* handleLowPriRequests(channel: any, buffer: PriorityBuffer<any>) {
+function* handleLowPriRequests (channel: any, buffer: PriorityBuffer<any>) {
     while (true) {
         const updatedSongs = [] as Song[];
-        while (
-            updatedSongs.length < RENDER_BATCH_SIZE
-            && (!buffer.isEmpty() || updatedSongs.length === 0)
-        ) {
+        while (updatedSongs.length < RENDER_BATCH_SIZE && (!buffer.isEmpty() || updatedSongs.length === 0)) {
             const taken = (yield take(channel)) as SimpleEffect<'TAKE', Song[]>;
             const batch = taken.payload;
             let attempts = 1;
             while (true) {
                 try {
                     const fetchedSongs: Song[] = yield fetchSongs(batch);
-                    updatedSongs.push(
-                        ...fetchedSongs
-                    );
+                    updatedSongs.push(...fetchedSongs);
                     break;
                 } catch (error) {
                     attempts++;
                     yield put({
-                        type: UPDATE_ERROR, payload:
-                            'Failed to fetch batch of songs'
-                            + '\nPlease check your internet'
-                            + '\nTrying again (Attempt ' + attempts + ')'
-                    })
+                        type: UPDATE_ERROR,
+                        payload:
+                            'Failed to fetch batch of songs' +
+                            '\nPlease check your internet' +
+                            '\nTrying again (Attempt ' +
+                            attempts +
+                            ')',
+                    });
                     yield delay(5000);
                 }
             }
         }
-        yield put({ type: UPDATE_SONGS, payload: updatedSongs })
+        yield put({ type: UPDATE_SONGS, payload: updatedSongs });
     }
 }
 
-
-function* handleHighPriRequests(channel: any, _buffer: PriorityBuffer<any>) {
+function* handleHighPriRequests (channel: any, _buffer: PriorityBuffer<any>) {
     while (true) {
         const taken = (yield take(channel)) as SimpleEffect<'TAKE', Song>;
         const song = taken.payload;
@@ -413,25 +401,33 @@ function* handleHighPriRequests(channel: any, _buffer: PriorityBuffer<any>) {
                 attempts++;
                 if (attempts > 5) {
                     yield put({
-                        type: UPDATE_ERROR, payload:
-                            'Failed to fetch song [' + song.init.name + ']'
-                            + '\nPlease check your internet and restart the app'
+                        type: UPDATE_ERROR,
+                        payload:
+                            'Failed to fetch song [' +
+                            song.init.name +
+                            ']' +
+                            '\nPlease check your internet and restart the app',
                     });
                     break;
                 }
                 yield put({
-                    type: UPDATE_ERROR, payload:
-                        'Failed to fetch song [' + song.init.name + ']'
-                        + '\nPlease check your internet'
-                        + '\nTrying again (Attempt ' + attempts + ')'
-                })
+                    type: UPDATE_ERROR,
+                    payload:
+                        'Failed to fetch song [' +
+                        song.init.name +
+                        ']' +
+                        '\nPlease check your internet' +
+                        '\nTrying again (Attempt ' +
+                        attempts +
+                        ')',
+                });
                 yield delay(5000);
             }
         }
     }
 }
 
-function* handleReloadRequests(channel: any) {
+function* handleReloadRequests (channel: any) {
     while (true) {
         // console.log('Waiting for request...')
         const taken = (yield take(channel)) as SimpleEffect<'TAKE', boolean>;
@@ -467,45 +463,42 @@ function* handleReloadRequests(channel: any) {
             } catch (error) {
                 attempts++;
                 yield put({
-                    type: UPDATE_ERROR, payload:
-                        'Failed to download song and category lists'
-                        + '\nPlease check your internet'
-                        + '\nTrying again (Attempt ' + attempts + ')'
-                })
+                    type: UPDATE_ERROR,
+                    payload:
+                        'Failed to download song and category lists' +
+                        '\nPlease check your internet' +
+                        '\nTrying again (Attempt ' +
+                        attempts +
+                        ')',
+                });
                 yield delay(5000);
             }
         }
 
         // Prioritize songs which were last populated longer ago
-        const sortedSongs = [...store.getState().songs]
-            .sort(
-                (a, b) => (a.populated?.populatedTime ?? 0)
-                    - (b.populated?.populatedTime ?? 0)
-            );
+        const sortedSongs = [...store.getState().songs].sort(
+            (a, b) => (a.populated?.populatedTime ?? 0) - (b.populated?.populatedTime ?? 0),
+        );
 
-        yield all(
-            chunks(sortedSongs, FETCH_BATCH_SIZE).map(chunk => (
-                put({ type: LOW_PRI_FETCH, payload: chunk })
-            ))
-        )
+        yield all(chunks(sortedSongs, FETCH_BATCH_SIZE).map(chunk => put({ type: LOW_PRI_FETCH, payload: chunk })));
     }
 }
 
-function* pollSongs(): any {
+function* pollSongs (): any {
     // create a channel to queue incoming requests
     const lowPriBuffer = new PriorityBuffer(8, LOW_PRI_FETCH);
     const lowPriChannel: Buffer<Action<any>> = yield actionChannel([LOW_PRI_FETCH], lowPriBuffer);
     const highPriBuffer = new PriorityBuffer(8, HIGH_PRI_FETCH);
     const highPriChannel: Buffer<Action<any>> = yield actionChannel([HIGH_PRI_FETCH], highPriBuffer);
 
-    const reloadSongListChannel: Buffer<Action<any>> = yield actionChannel([RELOAD_SONG_LIST])
+    const reloadSongListChannel: Buffer<Action<any>> = yield actionChannel([RELOAD_SONG_LIST]);
 
     // Wait for persist store to be ready
     // This is a gross solution but seems to be a limitation of redux-persist...
     // See https://github.com/rt2zz/redux-persist/issues/794
     yield take(REHYDRATE);
     while (!persistor.getState().bootstrapped) {
-        yield delay(1);;
+        yield delay(1);
     }
 
     // == Begin handling requests == //
@@ -514,7 +507,7 @@ function* pollSongs(): any {
     yield fork(handleHighPriRequests, highPriChannel, highPriBuffer);
     yield fork(handleReloadRequests, reloadSongListChannel);
 
-    yield put({ type: RELOAD_SONG_LIST, payload: false })
+    yield put({ type: RELOAD_SONG_LIST, payload: false });
 }
 
 const persistConfig: PersistConfig<any> = {
@@ -532,18 +525,14 @@ const persistConfig: PersistConfig<any> = {
     },
 };
 
-export type RootState = typeof initialState
-export type AppDispatch = typeof store.dispatch
-
+export type RootState = typeof initialState;
+export type AppDispatch = typeof store.dispatch;
 
 const pReducer = persistReducer<RootState>(persistConfig, rootReducer as any);
 
-const sagaMiddleware = createSagaMiddleware()
+const sagaMiddleware = createSagaMiddleware();
 
-export const store = createStore(
-    pReducer,
-    applyMiddleware(sagaMiddleware)
-);
+export const store = createStore(pReducer, applyMiddleware(sagaMiddleware));
 export const persistor = persistStore(store);
 
 sagaMiddleware.run(pollSongs);

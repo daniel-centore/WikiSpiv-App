@@ -27,6 +27,8 @@ import { KeyboardAvoidingView, Platform, SafeAreaView, StatusBar, View } from 'r
 import { MD3DarkTheme, MD3LightTheme, Provider as PaperProvider, Text } from 'react-native-paper';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import FavoriteSongsScreen from './screens/FavoriteSongsScreen';
+import { FavoriteButton } from './components/FavoriteButton';
 
 export type StackParamList = {
     tabs: {};
@@ -72,7 +74,19 @@ function RootContentSwitcher () {
                     component={SongModal}
                     options={({ route }) => ({
                         title: getPhonetic(phonetic, route.params.song.init.name),
-                        headerRight: () => <SongHeaderMenu song={route.params.song} />,
+                        headerRight: () => (
+                            <View
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flex: 1,
+                                }}
+                            >
+                                <FavoriteButton song={route.params.song} />
+                                <SongHeaderMenu song={route.params.song} />
+                            </View>
+                        ),
                     })}
                 />
             </Stack.Navigator>
@@ -90,7 +104,7 @@ function TabSwitcher () {
             <Tab.Screen name='search' component={SearchScreen} />
             <Tab.Screen name='categories' component={CategoriesNavigation} />
             {/* <Tab.Screen name="recent" component={PlaceholderScreen} /> */}
-            {/* <Tab.Screen name="bookmarks" component={PlaceholderScreen} /> */}
+            <Tab.Screen name='favorites' component={FavoriteSongsScreen} />
             <Tab.Screen name='settings' component={Settings} />
         </Tab.Navigator>
     );
@@ -113,22 +127,27 @@ function Content () {
 
     return (
         <PaperProvider theme={dark ? MD3DarkTheme : MD3LightTheme}>
-        <View
-            style={{
-                flex: 1,
-                backgroundColor: backgroundColorPrimary(useDark()),
-            }}
-        >
-            <MaybeWrapKeyboardAvoiding>
-                <StatusBar backgroundColor={bg} barStyle='light-content' />
-                {/* This view is used to block off the navigation areas */}
-                <View
-                    style={{ flex: 1, paddingTop: insets.top, paddingBottom: insets.bottom, backgroundColor: 'black' }}
-                >
-                    <RootContentSwitcher />
-                </View>
-            </MaybeWrapKeyboardAvoiding>
-        </View>
+            <View
+                style={{
+                    flex: 1,
+                    backgroundColor: backgroundColorPrimary(useDark()),
+                }}
+            >
+                <MaybeWrapKeyboardAvoiding>
+                    <StatusBar backgroundColor={bg} barStyle='light-content' />
+                    {/* This view is used to block off the navigation areas */}
+                    <View
+                        style={{
+                            flex: 1,
+                            paddingTop: insets.top,
+                            paddingBottom: insets.bottom,
+                            backgroundColor: 'black',
+                        }}
+                    >
+                        <RootContentSwitcher />
+                    </View>
+                </MaybeWrapKeyboardAvoiding>
+            </View>
         </PaperProvider>
     );
 }

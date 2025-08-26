@@ -124,9 +124,9 @@ export default class BottomBar extends React.Component<MyProps, MyState> {
                     selectedIcon: 'history',
                     outlineIcon: 'history',
                 };
-            case 'bookmarks':
+            case 'favorites':
                 return {
-                    title: 'Закладки',
+                    title: 'Улюблені',
                     selectedIcon: 'heart',
                     outlineIcon: 'heart-outline',
                 };

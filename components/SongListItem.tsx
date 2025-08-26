@@ -1,15 +1,16 @@
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Song from '../interfaces/Song';
-import { HIGH_PRI_FETCH, RootState, store } from '../store/store';
+import { HIGH_PRI_FETCH, RootState, store, updateFavorite } from '../store/store';
 import { backgroundColorPrimary, backgroundColorSecondary, useDark, textColorPrimary } from '../utils/color';
 import { getPhonetic } from '../utils/phonetic';
 import { getLatestSong } from '../utils/wikispivUtils';
 import PressableDebounce from './PressableDebounce';
 import { View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { IconButton, Text } from 'react-native-paper';
+import { FavoriteButton } from './FavoriteButton';
 
 export default function SongListItem (props: {
     song: Song;
@@ -21,45 +22,61 @@ export default function SongListItem (props: {
     const dark = useDark();
     const navigation = useNavigation<StackNavigationProp<any>>();
     const phoneticModeSetting = useSelector((state: RootState) => state.phoneticMode);
-
     const displayTitle = getPhonetic(phoneticModeSetting, props.title);
+    const [pressed, setPressed] = useState(false);
+
     return (
-        <PressableDebounce
-            onPress={() => {
-                const latestSong = getLatestSong(props.song) || props.song;
-                navigation.push('song', {
-                    song: latestSong,
-                });
-                if (!latestSong.populated) {
-                    // console.log('PUSHING HIGH PRI REQUEST')
-                    store.dispatch({ type: HIGH_PRI_FETCH, payload: latestSong });
-                }
+        <View
+            style={{
+                height: props.height,
+                paddingLeft: 5,
+                backgroundColor:
+                    props.index % 2 === 0
+                        ? backgroundColorPrimary(dark, pressed)
+                        : backgroundColorSecondary(dark, pressed),
+                display: 'flex',
+                flexDirection: 'row',
             }}
         >
-            {({ pressed }) => (
-                <View
-                    style={{
-                        height: props.height,
-                        paddingLeft: 10,
-                        backgroundColor:
-                            props.index % 2 === 0
-                                ? backgroundColorPrimary(dark, pressed)
-                                : backgroundColorSecondary(dark, pressed),
+            <View style={{ flex: 0, justifyContent: 'center' }}>
+                <FavoriteButton song={props.song} />
+            </View>
+            <View style={{ flex: 1 }}>
+                <PressableDebounce
+                    onPress={() => {
+                        const latestSong = getLatestSong(props.song) || props.song;
+                        navigation.push('song', {
+                            song: latestSong,
+                        });
+                        if (!latestSong.populated) {
+                            // console.log('PUSHING HIGH PRI REQUEST')
+                            store.dispatch({ type: HIGH_PRI_FETCH, payload: latestSong });
+                        }
                     }}
+                    onPressIn={() => setPressed(true)}
+                    onPressOut={() => setPressed(false)}
                 >
-                    <Text
+                    <View
                         style={{
-                            color: textColorPrimary(dark),
-                            fontSize: 18,
-                            fontWeight: 'bold',
-                            fontStyle: props.isRedirect ? 'italic' : 'normal',
+                            paddingRight: 20,
+                            justifyContent: 'center',
+                            height: props.height,
                         }}
-                        numberOfLines={2}
                     >
-                        {displayTitle}
-                    </Text>
-                </View>
-            )}
-        </PressableDebounce>
+                        <Text
+                            style={{
+                                color: textColorPrimary(dark),
+                                fontSize: 18,
+                                fontWeight: 'bold',
+                                fontStyle: props.isRedirect ? 'italic' : 'normal',
+                            }}
+                            numberOfLines={2}
+                        >
+                            {displayTitle}
+                        </Text>
+                    </View>
+                </PressableDebounce>
+            </View>
+        </View>
     );
 }
