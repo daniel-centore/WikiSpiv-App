@@ -2,7 +2,7 @@
   "expo": {
     "name": "WikiSpiv",
     "slug": "wikispiv",
-    "version": "2.0.6",
+    "version": "2.0.7",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "wikispiv",
@@ -26,7 +26,7 @@
         "foregroundImage": "./assets/images/android_adaptive_icon.png"
       },
       "icon": "./assets/images/android_legacy_icon.png",
-      "versionCode": 17
+      "versionCode": 18
     },
     "plugins": [
       "expo-font",
