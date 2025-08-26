@@ -93,7 +93,6 @@ function SearchBar (props: { listRef: React.RefObject<FlatListQuickScroll<any> |
             onChangeText={(text: string) => {
                 _updateText(props.listRef, text, setText);
             }}
-            clearButtonMode='always'
             onClearIconPress={() => {
                 _updateText(props.listRef, '', setText);
                 Keyboard.dismiss();
