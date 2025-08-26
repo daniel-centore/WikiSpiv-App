@@ -1,8 +1,9 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
     Keyboard,
     View,
     TextInput as ReactNativeTextInput,
+    Platform,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import FlatListQuickScroll, { FLQSListItemProcessed } from '../components/FlatListQuickScroll/FlatListQuickScroll';
@@ -69,12 +70,29 @@ export default function SearchScreen () {
 }
 
 function SearchBar (props: { listRef: React.RefObject<FlatListQuickScroll<any> | null> }) {
-    const dark = useDark();
     const [text, setText] = React.useState<string>('');
     const ref = useRef<ReactNativeTextInput>(null);
-    const keyboardVisible = useRef(false);
+
+    useEffect(() => {
+        // Blur input when keyboard closes (e.g. after tapping back arrow)
+        //
+        // iOS doesn't need to do this because we have no way of dismissing the keyboard
+        // anyways (because no back button) and this causes funky behavior in the
+        // ios simulator (which triggers the keyboardDidHide command immediately
+        // after focusing because the display keyboard was "hidden")
+        const hideListener = Keyboard.addListener('keyboardDidHide', (event) => {
+            if (Platform.OS === 'android') {
+                ref.current?.blur();
+            }
+        });
+        return () => {
+            hideListener.remove();
+        }
+    }, [])
+
     return (
         <Searchbar
+            ref={ref}
             placeholder='Search / Пошук'
             value={text}
             onChangeText={(text: string) => {
@@ -84,6 +102,11 @@ function SearchBar (props: { listRef: React.RefObject<FlatListQuickScroll<any> |
             onClearIconPress={() => {
                 _updateText(props.listRef, '', setText);
                 Keyboard.dismiss();
+            }}
+            showDivider={false}
+            mode="view"
+            inputStyle={{
+                minHeight: 50
             }}
         />
     );
