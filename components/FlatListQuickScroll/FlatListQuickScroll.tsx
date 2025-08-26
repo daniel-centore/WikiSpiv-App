@@ -47,11 +47,14 @@ export interface FlatListQuickScrollProps<ItemT> {
 }
 
 interface IState<ItemT> {
-    contentSize: number,
-    scrollViewLayout: LayoutRectangle | null,
     dataProvider: BaseDataProvider,
     layoutProvider: LayoutProvider,
     parsedData: FLQSListItemProcessed<ItemT>[],
+}
+
+type MyState = {
+    contentSize: number,
+    scrollViewLayout: LayoutRectangle | null,
 }
 
 export default class FlatListQuickScroll<ItemT>
@@ -60,6 +63,8 @@ export default class FlatListQuickScroll<ItemT>
     scrollBarRef: React.RefObject<ScrollBar<any> | null>;
     listRef: React.RefObject<RecyclerListView<any, any> | null>;
     latestParsedData: React.MutableRefObject<FLQSListItemProcessed<ItemT>[] | null>;
+
+    myState: MyState;
 
     static getParsedData<ItemT>(data: ReadonlyArray<FLQSListItem<ItemT>>) {
         return data.map((item, index) => {
@@ -128,9 +133,12 @@ export default class FlatListQuickScroll<ItemT>
         const width = this.props.width ?? Dimensions.get("window").width;
 
         this.state = {
+            ...FlatListQuickScroll.getParsedState(props.data, width, this.latestParsedData),
+        }
+
+        this.myState = {
             contentSize: 0,
             scrollViewLayout: null,
-            ...FlatListQuickScroll.getParsedState(props.data, width, this.latestParsedData),
         }
     }
 
@@ -178,16 +186,16 @@ export default class FlatListQuickScroll<ItemT>
         return (
             <View style={{ flex: 1 }}>
                 {
-                    !state.scrollViewLayout
+                    !this.myState.scrollViewLayout
                         ? null
                         : <ScrollBar
                             ref={this.scrollBarRef}
                             parsedData={parsedData}
                             listRef={this.listRef}
-                            contentSize={state.contentSize}
+                            contentSize={this.myState.contentSize}
                             maxRefreshSpeed={props.maxRefreshSpeed ?? 100}
                             headerTrackingStyle={props.headerTrackingStyle}
-                            scrollViewLayout={state.scrollViewLayout}
+                            scrollViewLayout={this.myState.scrollViewLayout}
                             lineColor={props.scrollLineColor}
                             handleColor={props.scrollHandleColor}
                             headerBackgroundColor={props.scrollHeaderBackgroundColor}
@@ -207,24 +215,30 @@ export default class FlatListQuickScroll<ItemT>
                     ) => {
                         // Setting state on the scrollbar instead of passing a prop to avoid
                         // re-rendering the RecyclerListView too
-                        this.scrollBarRef.current?.setState({
-                            ...this.scrollBarRef.current?.state,
-                            contentOffset: offsetY,
-                        });
+                        const currentScrollbar = this.scrollBarRef.current;
+                        if (currentScrollbar) {
+                            currentScrollbar.myState = {
+                                ...currentScrollbar.myState,
+                                contentOffset: offsetY,
+                            }
+                            currentScrollbar.forceUpdate();
+                        }
 
                         this.scrollBarRef.current?.updateJustScrolled();
                     }}
                     onContentSizeChange={(_width: number, height: number) => {
-                        this.setState({
-                            ...state,
+                        this.myState = {
+                            ...this.myState,
                             contentSize: height,
-                        })
+                        }
+                        this.forceUpdate();
                     }}
                     onLayout={(e: LayoutChangeEvent) => {
-                        this.setState({
-                            ...state,
+                        this.myState = {
+                            ...this.myState,
                             scrollViewLayout: e.nativeEvent.layout,
-                        });
+                        }
+                        this.forceUpdate();
                     }}
                     showsVerticalScrollIndicator={false}
                     contextProvider={props.context}

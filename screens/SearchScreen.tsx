@@ -1,10 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import {
-    Keyboard,
-    View,
-    TextInput as ReactNativeTextInput,
-    Platform,
-} from 'react-native';
+import { Keyboard, View, TextInput as ReactNativeTextInput, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import FlatListQuickScroll, { FLQSListItemProcessed } from '../components/FlatListQuickScroll/FlatListQuickScroll';
 import ListItem from '../components/ListItem';
@@ -80,15 +75,15 @@ function SearchBar (props: { listRef: React.RefObject<FlatListQuickScroll<any> |
         // anyways (because no back button) and this causes funky behavior in the
         // ios simulator (which triggers the keyboardDidHide command immediately
         // after focusing because the display keyboard was "hidden")
-        const hideListener = Keyboard.addListener('keyboardDidHide', (event) => {
+        const hideListener = Keyboard.addListener('keyboardDidHide', event => {
             if (Platform.OS === 'android') {
                 ref.current?.blur();
             }
         });
         return () => {
             hideListener.remove();
-        }
-    }, [])
+        };
+    }, []);
 
     return (
         <Searchbar
@@ -104,9 +99,9 @@ function SearchBar (props: { listRef: React.RefObject<FlatListQuickScroll<any> |
                 Keyboard.dismiss();
             }}
             showDivider={false}
-            mode="view"
+            mode='view'
             inputStyle={{
-                minHeight: 50
+                minHeight: 50,
             }}
         />
     );

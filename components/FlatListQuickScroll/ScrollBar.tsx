@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Animated, PanResponder, View, Text, PanResponderGestureState, LayoutRectangle } from 'react-native';
 import { RecyclerListView } from 'recyclerlistview';
 import { shallowCompare } from '../../utils/simpleUtils';
@@ -31,7 +31,7 @@ interface IState {
 
     contentOffset: number;
     scrollBarLayout: LayoutRectangle | null;
-    
+    usingScrollBar: boolean;
     scrollBarDragPercent: number;
     // Using this kludge to prevent the scrollbar from jumping back to
     // its old position briefly upon being released
@@ -39,19 +39,19 @@ interface IState {
     scrollbarOpacity: Animated.Value;
 }
 
-export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>, IState> {
+export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>> {
     nubTimerHandle: NodeJS.Timeout | null;
     scrollbarVisible: boolean;
     // NOTE: usingScrollBar needed to be moved out of the state to fix a race condition
     // which was causing the state to not be updated correctly sometimes when updated
     // quickly from the PanResponder. In theory the other state variables are probably
     // impacted too and should perhaps be moved out of the state too (TODO)
-    usingScrollBar: boolean;
+    myState: IState;
     scrollBarRef = React.createRef<View>();
 
     constructor (props: IProps<ItemT>) {
         super(props);
-        this.state = {
+        this.myState = {
             onPanResponderMove: 0,
             onPanResponderRelease: 0,
 
@@ -60,14 +60,14 @@ export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>, ISt
             scrollBarDragPercent: 0,
             contentOffsetStaleValueKludge: -1,
             scrollbarOpacity: new Animated.Value(0),
+            usingScrollBar: false,
         };
         this.nubTimerHandle = null;
         this.scrollbarVisible = false;
-        this.usingScrollBar = false;
     }
 
     _stayVisible () {
-        const state = this.state;
+        const state = this.myState;
 
         this._clearTimers();
         this.nubTimerHandle = setTimeout(() => {
@@ -86,7 +86,7 @@ export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>, ISt
         if (this.scrollbarVisible) {
             this._stayVisible();
         } else {
-            Animated.timing(this.state.scrollbarOpacity, {
+            Animated.timing(this.myState.scrollbarOpacity, {
                 toValue: 1,
                 duration: 300,
                 useNativeDriver: false,
@@ -98,7 +98,7 @@ export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>, ISt
     }
 
     _computeDragPercent (gestureState: PanResponderGestureState): number | null {
-        const state = this.state;
+        const state = this.myState;
         const scrollBarLayout = state.scrollBarLayout;
         if (scrollBarLayout === null) {
             return null;
@@ -115,7 +115,7 @@ export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>, ISt
 
     _computeDragOffset (positionPercent: number): number {
         const props = this.props;
-        const state = this.state;
+        const state = this.myState;
         return Math.min(
             Math.max((props.contentSize - (state.scrollBarLayout?.height ?? 0)) * positionPercent, 0),
             props.contentSize,
@@ -124,7 +124,7 @@ export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>, ISt
 
     _fixScreenLayout () {
         this.scrollBarRef.current?.measure((_x, _y, width, height, pageX, pageY) => {
-            const currentLayout = this.state.scrollBarLayout;
+            const currentLayout = this.myState.scrollBarLayout;
 
             const newLayout = new (class implements LayoutRectangle {
                 x = pageX;
@@ -132,14 +132,13 @@ export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>, ISt
                 width = width;
                 height = height;
             })();
+            // console.log('_fixScreenLayout', {newLayout})
             if (height !== undefined && !shallowCompare(currentLayout, newLayout)) {
-                this.setState(state => {
-                    // console.log('_fixScreenLayout', { state });
-                    return {
-                        ...state,
-                        scrollBarLayout: newLayout,
-                    };
-                });
+                this.myState = {
+                    ...this.myState,
+                    scrollBarLayout: newLayout,
+                };
+                this.forceUpdate();
             }
         });
     }
@@ -185,17 +184,14 @@ export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>, ISt
                 true, // animation
             );
 
-            // TODO: Move away from state and use forceUpdate instead? To fix race condition?
-            this.setState(state => {
-                // console.log('onPanResponderRelease', { state });
-                return {
-                    ...state,
-                    onPanResponderRelease: state.onPanResponderRelease + 1,
-                    scrollBarDragPercent: positionPercent,
-                    contentOffsetStaleValueKludge: state.contentOffset,
-                };
-            });
-            this.usingScrollBar = false;
+            this.myState = {
+                ...this.myState,
+                onPanResponderRelease: this.myState.onPanResponderRelease + 1,
+                scrollBarDragPercent: positionPercent,
+                contentOffsetStaleValueKludge: this.myState.contentOffset,
+                usingScrollBar: false,
+            };
+            this.forceUpdate();
 
             // console.log('Just Scrolled');
             this.updateJustScrolled();
@@ -203,7 +199,7 @@ export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>, ISt
         },
         onPanResponderMove: (evt, gestureState) => {
             const props = this.props;
-            const state = this.state;
+            const state = this.myState;
 
             if (!this.scrollbarVisible) {
                 // If scrollbar is not visible just swallow its move requests
@@ -227,17 +223,14 @@ export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>, ISt
                 );
             }
 
-            // console.log('onPanResponderMove - using scrollbar!');
-            this.setState(state => {
-                // console.log('onPanResponderMove', { state });
-                return {
-                    ...state,
-                    onPanResponderMove: state.onPanResponderMove + 1,
-                    scrollBarDragPercent: positionPercent,
-                    contentOffset: offset,
-                };
-            });
-            this.usingScrollBar = true;
+            this.myState = {
+                ...this.myState,
+                onPanResponderMove: this.myState.onPanResponderMove + 1,
+                scrollBarDragPercent: positionPercent,
+                contentOffset: offset,
+                usingScrollBar: true,
+            };
+            this.forceUpdate();
 
             this.updateJustScrolled();
         },
@@ -255,9 +248,12 @@ export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>, ISt
         // EDIT: Not able to repro this issue anymore, and latest version of React freaks out when
         // setting state from render.
         // this._fixScreenLayout();
+        // setTimeout(() => {
+        //    this._fixScreenLayout();
+        // }, 1)
 
         const props = this.props;
-        const state = this.state;
+        const state = this.myState;
 
         // console.log('\n\n === RENDER', {
         //     usingScrollbar: this.usingScrollBar,
@@ -275,9 +271,11 @@ export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>, ISt
         const barWidth = 6;
         const nubWidth = 10;
 
+        // console.log({contentSize: props.contentSize});
+
         const scrollPercent = Math.min(
             Math.max(
-                this.usingScrollBar || state.contentOffsetStaleValueKludge === state.contentOffset
+                state.usingScrollBar || state.contentOffsetStaleValueKludge === state.contentOffset
                     ? state.scrollBarDragPercent
                     : state.contentOffset / (props.contentSize - props.scrollViewLayout.height),
                 0,
@@ -357,7 +355,7 @@ export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>, ISt
                 </View>
             );
 
-        const headerView = <Animated.View>{this.usingScrollBar ? header : null}</Animated.View>;
+        const headerView = <Animated.View>{this.myState.usingScrollBar ? header : null}</Animated.View>;
 
         const mainView = (
             <View
@@ -389,7 +387,7 @@ export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>, ISt
                 {/* The line */}
                 <Animated.View
                     style={{
-                        opacity: this.state.scrollbarOpacity,
+                        opacity: this.myState.scrollbarOpacity,
                         position: 'absolute',
                         right: tapWidth / 2 - barWidth / 2,
                         marginBottom: 8,
@@ -401,7 +399,7 @@ export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>, ISt
                     }}
                 />
                 {/* The scrollbar handle */}
-                <Animated.View style={[{ opacity: this.state.scrollbarOpacity }]}>
+                <Animated.View style={[{ opacity: this.myState.scrollbarOpacity }]}>
                     <View
                         style={{
                             position: 'absolute',
@@ -425,7 +423,7 @@ export default class ScrollBar<ItemT> extends React.Component<IProps<ItemT>, ISt
                     right: 0,
                     // The scrollbar needs to grow when it's being used so the header is visible
                     // It can't always be full width though because then it consumes tap events when it shouldn't
-                    width: this.usingScrollBar ? '100%' : tapWidth,
+                    width: this.myState.usingScrollBar ? '100%' : tapWidth,
                     height: '100%',
                     zIndex: 1,
                 }}
