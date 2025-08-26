@@ -13,14 +13,17 @@ import {
     SimpleEffect,
     all
 } from 'redux-saga/effects'
-import createSagaMiddleware, { buffers, channel, Buffer, Saga } from 'redux-saga'
+import { buffers, channel, Buffer, Saga } from 'redux-saga'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { REHYDRATE } from 'redux-persist/lib/constants';
 import wiki from 'wikijs';
-import { aggregatePagination, api, pagination } from 'wikijs/dist/mjs/util'
+import { aggregatePagination, pagination } from 'wikijs/dist/mjs/util'
 import { PriorityBuffer } from './PriorityBuffer';
 import { ChordModeSetting, DarkModeSetting, PhoneticModeSetting } from './SettingEnums';
 import { chunks } from '../utils/simpleUtils';
+
+// Workaround from https://github.com/redux-saga/redux-saga/issues/2709#issuecomment-2847140992
+const createSagaMiddleware = require('redux-saga').default
 
 const SEC_MS = 1000;
 const MIN_MS = 60 * SEC_MS;
@@ -217,12 +220,12 @@ async function fetchDisplayCategories(): Promise<string[]> {
 
     return await wiki(apiOptions)
         .page('List:App categories')
-        .then(async (page) => {
+        .then(async (page: any) => {
             const raw = await page.rawContent();
             const result = raw.split('\n')
-                .filter(result => result.trim().length > 0);
+                .filter((result: any) => result.trim().length > 0);
             return result;
-        }).catch((error) => { throw error });
+        }).catch((error: any) => { throw error });
 
 }
 
@@ -250,7 +253,7 @@ async function fetchSongAndCategoryLists(): Promise<{
         )
     );
 
-    const filteredSongs = allSongs.filter(song => !excludeSongs.includes(song));
+    const filteredSongs = allSongs.filter((song: any) => !excludeSongs.includes(song));
 
     const redirectsMap = {} as { [id: string]: Set<string> };
     allRedirects.forEach((r: { from: string, to: string }) => {
@@ -259,7 +262,7 @@ async function fetchSongAndCategoryLists(): Promise<{
     });
 
 
-    const songs = filteredSongs.map(pagename => {
+    const songs = filteredSongs.map((pagename: any) => {
         // console.log(redirectsMap[pagename]);
         return new Song(
             {

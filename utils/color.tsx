@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { DarkModeSetting } from "../store/SettingEnums";
 import { RootState, store } from "../store/store";
 
+
 export function useDark() {
     let colorScheme = useColorScheme();
     const mode = useSelector((state: RootState) => state.darkMode);

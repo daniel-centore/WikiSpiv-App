@@ -1,12 +1,12 @@
-import React from "react";
+import React, { ReactNode } from "react";
 import { View } from "react-native";
 import Stanza from "../interfaces/Stanza";
-import { Text } from "native-base";
 import { backgroundColorPrimary, textColorPrimary, useDark } from "../utils/color";
 import Song from "../interfaces/Song";
 import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import { getPhonetic } from "../utils/phonetic";
+import { Text } from 'react-native-paper';
 
 interface IProps {
     dark: boolean,
@@ -17,7 +17,7 @@ interface IProps {
 }
 
 type ElementWithHeight = {
-    element: JSX.Element;
+    element: ReactNode;
     height: number;
 }
 
@@ -123,11 +123,14 @@ function Credits(props: { credits: string | null }) {
 
     return props.credits === null ? null :
         <Text
-            color={textColorPrimary(dark)}
-            italic={true}
-            fontSize={14}
-            lineHeight={18}
-            marginBottom={15}
+        style={{
+            color: textColorPrimary(dark),
+            fontStyle: 'italic',
+            fontSize: 14,
+            lineHeight: 18,
+            marginBottom: 15,
+        }}
+            
         >
             {getPhonetic(phonetic, props.credits, true)}
         </Text>

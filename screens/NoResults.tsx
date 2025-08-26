@@ -1,21 +1,29 @@
-import { Heading, HStack, View } from "native-base";
-import React from "react";
-import { useDark, textColorEmphasized } from "../utils/color";
+import React from 'react';
+import { useDark, textColorEmphasized } from '../utils/color';
+import { View } from 'react-native';
+import { Text } from 'react-native-paper';
 
-export default function NoResults() {
+export default function NoResults () {
     const dark = useDark();
     return (
-        <View style={{
-            marginTop: '35%',
-            justifyContent: 'center',
-            alignItems: 'center',
-        }}>
-            <HStack space={2} alignItems="center">
-                <Heading color={textColorEmphasized(dark)} fontSize="md">
+        <View
+            style={{
+                marginTop: '35%',
+                justifyContent: 'center',
+                alignItems: 'center',
+            }}
+        >
+            <View>
+                <Text
+                    style={{
+                        color: textColorEmphasized(dark),
+                        fontSize: 20,
+                    }}
+                >
                     {/* Intentionally using diasporic "Нема" - do not "correct" to "Немає" */}
                     No Results - Нема результатів
-                </Heading>
-            </HStack>
+                </Text>
+            </View>
         </View>
     );
 }

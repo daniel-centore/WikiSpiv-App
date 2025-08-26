@@ -2,7 +2,6 @@ import { RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import React, { useEffect } from "react";
 import { CategoriesStackParamList } from "./CategoriesNavigation";
-import { View } from "native-base"
 import FlatListQuickScroll, { FLQSListItem } from "../components/FlatListQuickScroll/FlatListQuickScroll";
 import { _renderListItem } from "./SearchScreen";
 import ScrollContextHelper from "../components/ScrollContextHelper";
@@ -11,6 +10,7 @@ import { RootState, store } from "../store/store";
 import { getHeaderedSongs } from "../utils/filtering";
 import getSortedSongsAndRedirects from "../utils/sorting";
 import { useSelector } from "react-redux";
+import { View } from "react-native";
 
 export default function CategorySongsScreen(props: {
     navigation: StackNavigationProp<any>,

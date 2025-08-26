@@ -1,4 +1,4 @@
-import React, { RefObject, useEffect, useMemo, useRef, useState } from "react";
+import React from "react";
 import {
     Dimensions,
     LayoutChangeEvent,
@@ -6,7 +6,7 @@ import {
     NativeScrollEvent,
     NativeSyntheticEvent,
     ScrollViewProps,
-    View
+    View,
 } from "react-native";
 
 import { RecyclerListView, DataProvider, LayoutProvider, BaseDataProvider } from "recyclerlistview";
@@ -57,8 +57,8 @@ interface IState<ItemT> {
 export default class FlatListQuickScroll<ItemT>
     extends React.Component<FlatListQuickScrollProps<ItemT>, IState<ItemT>> {
 
-    scrollBarRef: React.RefObject<ScrollBar<any>>;
-    listRef: React.RefObject<RecyclerListView<any, any>>;
+    scrollBarRef: React.RefObject<ScrollBar<any> | null>;
+    listRef: React.RefObject<RecyclerListView<any, any> | null>;
     latestParsedData: React.MutableRefObject<FLQSListItemProcessed<ItemT>[] | null>;
 
     static getParsedData<ItemT>(data: ReadonlyArray<FLQSListItem<ItemT>>) {

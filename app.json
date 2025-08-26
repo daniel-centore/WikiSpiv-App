@@ -29,7 +29,9 @@
       "versionCode": 16
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      "expo-asset",
+      "expo-web-browser"
     ],
     "extra": {
       "eas": {

@@ -1,6 +1,7 @@
-import { Text, View } from "native-base";
 import React, { ReactNode } from "react";
 import { textColorPrimary, textColorSecondary, useDark } from "../utils/color";
+import { View } from "react-native";
+import { Text } from 'react-native-paper';
 
 export default function SettingsRow(props: {
     title: string,
@@ -21,13 +22,13 @@ export default function SettingsRow(props: {
                 paddingRight: 20,
                 minWidth: props.minTitleWidth ?? 75,
             }}>
-                <Text color={textColorPrimary(dark)} fontSize={16}>{props.title}</Text>
+                <Text style={{color: textColorPrimary(dark), fontSize: 16}}>{props.title}</Text>
                 {
                     !props.subtitle ? null
-                        : <Text color={textColorSecondary(dark)} fontSize={12}>{props.subtitle}</Text>
+                        : <Text style={{color: textColorSecondary(dark), fontSize: 12}}>{props.subtitle}</Text>
                 }
             </View>
-            <View flexShrink={1}>
+            <View style={{flexShrink: 1}}>
                 {props.children}
             </View>
         </View>

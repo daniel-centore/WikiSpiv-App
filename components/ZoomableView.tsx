@@ -136,7 +136,7 @@ export default class ZoomableView extends Component<IProps, IState> {
         gestureState: PanResponderGestureState,
     ) => {
         this.lastScale.current = this.state.scale;
-        store.dispatch({ type: updateZoom, payload: this.state.scale })
+        store.dispatch({ type: updateZoom.toString(), payload: this.state.scale })
     };
 
     _handlePanResponderMove = (

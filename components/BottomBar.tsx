@@ -1,21 +1,16 @@
-import React from 'react';
-import { Keyboard } from 'react-native';
-import {
-    Pressable,
-    Center,
-    HStack,
-    Icon,
-} from 'native-base';
-import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import React, { ComponentProps } from 'react';
+import { Keyboard, Pressable, View } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { backgroundColorTabBar } from '../utils/color';
+import { Text } from 'react-native-paper';
 
 type MyProps = {
-    bottomTabProps: BottomTabBarProps,
-    dark: boolean,
+    bottomTabProps: BottomTabBarProps;
+    dark: boolean;
 };
 type MyState = {
-    keyboardShown: boolean,
+    keyboardShown: boolean;
 };
 export default class BottomBar extends React.Component<MyProps, MyState> {
     state: MyState = {
@@ -25,27 +20,27 @@ export default class BottomBar extends React.Component<MyProps, MyState> {
     keyboardDidHideListener: any;
     keyboardDidShowListener: any;
 
-    componentDidMount() {
+    componentDidMount () {
         this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
             this.setState({
-                ...(this.state),
+                ...this.state,
                 keyboardShown: true,
             });
         });
         this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
             this.setState({
-                ...(this.state),
+                ...this.state,
                 keyboardShown: false,
             });
         });
     }
 
-    componentWillUnmount() {
+    componentWillUnmount () {
         this.keyboardDidShowListener.remove();
         this.keyboardDidHideListener.remove();
     }
 
-    render() {
+    render () {
         if (this.state.keyboardShown) {
             // Hide bottom bar when keyboard is visible
             return null;
@@ -57,7 +52,15 @@ export default class BottomBar extends React.Component<MyProps, MyState> {
         const navigation = btp.navigation;
         const dark = props.dark;
         return (
-            <HStack bg={backgroundColorTabBar(dark)} alignItems="center" safeAreaBottom shadow={6}>
+            <View
+                style={{
+                    backgroundColor: backgroundColorTabBar(dark),
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                }}
+                // safeAreaBottom
+                // shadow={6}
+            >
                 {state.routes.map((route, index) => {
                     const { options } = descriptors[route.key];
                     const isSelected = state.index === index;
@@ -91,81 +94,83 @@ export default class BottomBar extends React.Component<MyProps, MyState> {
                         />
                     );
                 })}
-            </HStack>
+            </View>
         );
     }
 
-    getSettings(route: string) {
+    getSettings (route: string): {
+        title: string;
+        selectedIcon: ComponentProps<typeof MaterialCommunityIcons>['name'];
+        outlineIcon: ComponentProps<typeof MaterialCommunityIcons>['name'];
+    } {
         switch (route) {
             case 'search':
                 return {
-                    title: "Пошук",
-                    selectedIcon: (<MaterialIcons name={'search'} />),
-                    outlineIcon: (<MaterialIcons name={'search'} />),
+                    title: 'Пошук',
+                    selectedIcon: 'magnify',
+                    outlineIcon: 'magnify',
                 };
             case 'categories':
                 return {
-                    title: "Категорії",
-                    selectedIcon: (<MaterialCommunityIcons name={'widgets'} />),
-                    outlineIcon: (<MaterialCommunityIcons name={'widgets-outline'} />),
+                    // Intentionally using diasporic spelling, DO NOT CHANGE TO КАТЕГОРІї
+                    title: 'Катеґорії',
+                    selectedIcon: 'widgets',
+                    outlineIcon: 'widgets-outline',
                 };
             case 'recent':
                 return {
                     // Intentionally using diasporic spelling, DO NOT CHANGE TO ОСТАННІ
-                    title: "Остатні",
-                    selectedIcon: (<MaterialCommunityIcons name={'history'} />),
-                    outlineIcon: (<MaterialCommunityIcons name={'history'} />),
+                    title: 'Остатні',
+                    selectedIcon: 'history',
+                    outlineIcon: 'history',
                 };
             case 'bookmarks':
                 return {
-                    title: "Закладки",
-                    selectedIcon: (<MaterialCommunityIcons name={'heart'} />),
-                    outlineIcon: (<MaterialCommunityIcons name={'heart-outline'} />),
+                    title: 'Закладки',
+                    selectedIcon: 'heart',
+                    outlineIcon: 'heart-outline',
                 };
             case 'settings':
                 return {
-                    title: "Настройки",
-                    selectedIcon: (<MaterialCommunityIcons name={'cog'} />),
-                    outlineIcon: (<MaterialCommunityIcons name={'cog-outline'} />),
+                    title: 'Настройки',
+                    selectedIcon: 'cog',
+                    outlineIcon: 'cog-outline',
                 };
         }
         return {
-            title: "null",
-            selectedIcon: (<MaterialCommunityIcons name={'null'} />),
-            outlineIcon: (<MaterialCommunityIcons name={'null'} />),
+            title: 'null',
+            selectedIcon: 'null',
+            outlineIcon: 'null',
         };
     }
 }
 
-function BottomBarButton(props: {
-    isSelected: boolean,
-    onPress: () => void,
-    onLongPress: () => void
-    selectedIcon: JSX.Element,
-    outlineIcon: JSX.Element,
-    title: string,
+function BottomBarButton (props: {
+    isSelected: boolean;
+    onPress: () => void;
+    onLongPress: () => void;
+    selectedIcon: ComponentProps<typeof MaterialCommunityIcons>['name'];
+    outlineIcon: ComponentProps<typeof MaterialCommunityIcons>['name'];
+    title: string;
 }) {
     return (
         <Pressable
-            opacity={props.isSelected ? 1 : 0.5}
-            py="3"
-            flex={1}
+            style={{
+                opacity: props.isSelected ? 1 : 0.5,
+                paddingTop: 3,
+                paddingBottom: 3,
+                flex: 1,
+                alignItems: 'center',
+            }}
             onPress={props.onPress}
             onLongPress={props.onLongPress}
         >
-            <Center>
-                <Icon
-                    mb="1"
-                    as={
-                        props.isSelected ? props.selectedIcon : props.outlineIcon
-                    }
-                    color="white"
-                    size="lg"
-                />
-                {/* <Text color="white" fontSize="12">
-                    {props.title}
-                </Text> */}
-            </Center>
+            <MaterialCommunityIcons
+                size={35}
+                color={'white'}
+                name={props.isSelected ? props.selectedIcon : props.outlineIcon}
+            />
+            <Text style={{ color: 'white', fontSize: 12 }}>{props.title}</Text>
         </Pressable>
     );
 }

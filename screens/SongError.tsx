@@ -1,25 +1,28 @@
-import { Heading, HStack, View } from "native-base";
-import React from "react";
-import { backgroundColorPrimary, useDark, textColorEmphasized } from "../utils/color";
+import React from 'react';
+import { backgroundColorPrimary, useDark, textColorEmphasized } from '../utils/color';
+import { View } from 'react-native';
+import { Text } from 'react-native-paper';
 
-export default function SongError() {
+export default function SongError () {
     const dark = useDark();
     return (
-        <View style={{
-            backgroundColor: backgroundColorPrimary(dark),
-            height: '100%',
-            width: '100%',
-        }}>
-            <View style={{
-                marginTop: '35%',
-                justifyContent: 'center',
-                alignItems: 'center',
-            }}>
-                <HStack space={2} alignItems="center">
-                    <Heading color={textColorEmphasized(dark)} fontSize="md">
-                        Something went wrong while loading the song
-                    </Heading>
-                </HStack>
+        <View
+            style={{
+                backgroundColor: backgroundColorPrimary(dark),
+                height: '100%',
+                width: '100%',
+            }}
+        >
+            <View
+                style={{
+                    marginTop: '35%',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}
+            >
+                <Text style={{ color: textColorEmphasized(dark), fontSize: 20 }}>
+                    Something went wrong while loading the song
+                </Text>
             </View>
         </View>
     );

@@ -1,17 +1,11 @@
-import { HStack, Spinner, View, Text } from "native-base";
-import React from "react";
-import {
-    backgroundColorPrimary,
-    useDark,
-    textColorEmphasized,
-    textColorError,
-    textColorPrimary,
-} from "../utils/color";
-import { useError } from "../utils/errorHandling";
-import logo from '../assets/images/logo.png'
-import { Image } from 'react-native';
+import React from 'react';
+import { backgroundColorPrimary, useDark, textColorEmphasized, textColorError, textColorPrimary } from '../utils/color';
+import { useError } from '../utils/errorHandling';
+import logo from '../assets/images/logo.png';
+import { Image, View } from 'react-native';
+import { ActivityIndicator, Text } from 'react-native-paper';
 
-export default function Loading(props: { includeLogo: boolean }) {
+export default function Loading (props: { includeLogo: boolean }) {
     const dark = useDark();
     const error = useError();
     return (
@@ -25,50 +19,61 @@ export default function Loading(props: { includeLogo: boolean }) {
                 alignItems: 'center',
             }}
         >
-            <View style={{
-                marginTop: '-35%',
-                justifyContent: 'center',
-                alignItems: 'center',
-            }}>
-                {
-                    props.includeLogo ? <>
-                        <View style={{
-                            alignItems: 'center',
-                            width: '100%',
-                            paddingBottom: 15,
-                        }}>
+            <View
+                style={{
+                    marginTop: '-35%',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}
+            >
+                {props.includeLogo ? (
+                    <>
+                        <View
+                            style={{
+                                alignItems: 'center',
+                                width: '100%',
+                                paddingBottom: 15,
+                            }}
+                        >
                             <Image source={logo} style={{ width: 100, height: 100 }} />
                         </View>
-                        <Text style={{
-                            paddingBottom: 5,
-                            textAlign: 'center',
-                            color: textColorPrimary(dark),
-                            fontSize: 40,
-                            lineHeight: 45,
-                        }}>
+                        <Text
+                            style={{
+                                paddingBottom: 5,
+                                textAlign: 'center',
+                                color: textColorPrimary(dark),
+                                fontSize: 40,
+                                lineHeight: 45,
+                            }}
+                        >
                             {'WikiSpiv'}
                         </Text>
-                    </> : null
-                }
+                    </>
+                ) : null}
 
-                <HStack space={2} alignItems="center" marginTop={30}>
-                    <Spinner color={textColorEmphasized(dark)} accessibilityLabel="Loading" />
-                    <Text color={textColorEmphasized(dark)} fontSize={20}>
+                <View>
+                    <ActivityIndicator animating={true} color={textColorEmphasized(dark)} />
+                    <Text
+                        style={{
+                            color: textColorEmphasized(dark),
+                            fontSize: 20,
+                        }}
+                    >
                         Loading... прошу зачекайте!
                     </Text>
-                </HStack>
-                {
-                    error
-                        ? <Text
-                            color={textColorError(dark)}
-                            fontSize={16}
-                            paddingTop={40}
-                            textAlign="center"
-                        >
-                            {error}
-                        </Text>
-                        : null
-                }
+                </View>
+                {error ? (
+                    <Text
+                        style={{
+                            color: textColorError(dark),
+                            fontSize: 16,
+                            paddingTop: 40,
+                            textAlign: 'center',
+                        }}
+                    >
+                        {error}
+                    </Text>
+                ) : null}
             </View>
         </View>
     );
